@@ -19,18 +19,17 @@ export const UserController = {
   login: async (req: Request, res: Response) => {
     try {
       const body: ILogin = req.body;
-      const { username, password } = body;
+      const { email, password } = body;
 
       const allUser = await prisma.user.findMany();
       const user = allUser.find(
-        (u) =>
-          u.username === username && bcrypt.compareSync(password, u.password)
+        (u) => u.email === email && bcrypt.compareSync(password, u.password)
       );
 
       if (user) {
         const token = encodeToken({
           id: user.id,
-          username,
+          email,
         });
 
         const { password, ...userWithoutPassword } = user;
@@ -50,25 +49,20 @@ export const UserController = {
   register: async (req: Request, res: Response) => {
     try {
       const body: IUser = req.body;
-      const { name, username, email, idNo, phone, address, image, status } =
-        body;
+      const { name, email, idNo, phone, address, image, status } = body;
 
-      const existingUsername = await prisma.user.findFirst({
-        where: { username },
-      });
       const existingEmail = await prisma.user.findFirst({
         where: { email: email.trim().toLowerCase() },
       });
 
-      if (existingEmail || existingUsername) {
-        return handleBadRequest({ res, message: "Existing username | email" });
+      if (existingEmail) {
+        return handleBadRequest({ res, message: "Email. exists!" });
       }
 
       const hash = await bcrypt.hash(req.body.password, saltRounds);
       const createUser = await prisma.user.create({
         data: {
-          name: name ? name : `${username}`,
-          username,
+          name,
           password: hash,
           email: email.trim().toLowerCase(),
           idNo,
@@ -131,7 +125,6 @@ export const UserController = {
       const {
         password,
         idNo,
-        username,
         email,
         roleId,
         phone,

@@ -8,19 +8,18 @@ datasource db {
 }
 
 model user {
-  id            Int       @id @default(autoincrement())
-  username      String    @unique
+  id            Int      @id @default(autoincrement())
   password      String
-  name          String    @default("test user")
-  email         String?
+  name          String   @default("test user")
+  email         String   @unique
   salary        Int?
   idNo          String?
   phone         String?
   address       String?
   image         String?
-  status        Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  createdBy     String    @default("admin")
+  status        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String   @default("admin")
   lastChangedBy String?
 }

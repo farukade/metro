@@ -20,8 +20,8 @@ export const authorize = (requiredPermissions: string[]) => {
     (req: Request, res: Response, next: NextFunction) => {
       const token = getToken(req);
       const result = decodeToken(token);
-      const { id, username } = result;
-      req.user = { id, username };
+      const { id, email } = result;
+      req.user = { id, email };
       next();
     },
   ];
@@ -130,7 +130,7 @@ export const testAddToken = async (
   try {
     req.user = {
       id: 1,
-      username: "techtink.admin",
+      email: "dedahospital@gmail.com",
     };
     next();
   } catch (error) {

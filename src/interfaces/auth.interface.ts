@@ -1,7 +1,6 @@
 export interface IAuthUser {
   id: number;
-  username: string;
-  email?: string;
+  email: string;
 }
 
 declare module "express" {

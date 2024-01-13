@@ -13,7 +13,7 @@ const {
 } = UserController;
 
 userRoutes.post("/login", login);
-userRoutes.post("/register", authorize(["create-user"]), register);
+userRoutes.post("/register", register);
 userRoutes.get("/", authorize(["readAll-user"]), getAllUser);
 userRoutes.get("/:id", authorize(["readSingle-user"]), getSingleUser);
 userRoutes.put("/:id", authorize(["update-user"]), updateSingleUser);
