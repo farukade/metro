@@ -11,6 +11,7 @@ import { config } from "dotenv";
 import * as bcrypt from "bcrypt";
 import { ILogin, IUser } from "../interfaces/user.interface";
 import { encodeToken } from "../utils/middlewares";
+import moment from "moment";
 config();
 
 const saltRounds = +process.env.SALT_ROUNDS;
@@ -21,7 +22,9 @@ export const UserController = {
       const body: ILogin = req.body;
       const { email, password } = body;
 
-      const allUser = await prisma.user.findMany();
+      const allUser = await prisma.user.findMany({
+        where: { status: true },
+      });
       const user = allUser.find(
         (u) => u.email === email && bcrypt.compareSync(password, u.password)
       );
@@ -33,10 +36,54 @@ export const UserController = {
         });
 
         const { password, ...userWithoutPassword } = user;
+
+        const startDate = new Date(
+          moment().startOf("month").format("YYYY-MM-DD")
+        );
+        const endDate = new Date(moment().endOf("month").format("YYYY-MM-DD"));
+
+        const transactions = await prisma.transaction.aggregate({
+          _sum: {
+            amount: true,
+          },
+          _count: {
+            id: true,
+          },
+          where: {
+            date: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+        });
+
+        const previousTransaction = await prisma.transaction.aggregate({
+          _sum: {
+            amount: true,
+          },
+          _count: {
+            id: true,
+          },
+          where: {
+            date: {
+              gte: new Date(startDate.setMonth(startDate.getMonth() - 1)),
+              lte: new Date(endDate.setMonth(endDate.getMonth() - 1)),
+            },
+          },
+        });
+
         return handleSuccess({
           res,
           data: {
             ...userWithoutPassword,
+            totalSpent: transactions._sum.amount,
+            totalSpentPrevious: previousTransaction._sum.amount,
+            transactionCount: transactions._count.id,
+            transactionCountPrevious: previousTransaction._count.id,
+            percentageDifference:
+              ((transactions._sum.amount + previousTransaction._sum.amount) /
+                100) *
+              transactions._sum.amount,
             token,
           },
         });
