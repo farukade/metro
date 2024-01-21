@@ -12,6 +12,7 @@ import * as bcrypt from "bcrypt";
 import { ILogin, IUser } from "../interfaces/user.interface";
 import { encodeToken } from "../utils/middlewares";
 import moment from "moment";
+import { TransactionController } from "./transaction.controller";
 config();
 
 const saltRounds = +process.env.SALT_ROUNDS;
@@ -37,53 +38,36 @@ export const UserController = {
 
         const { password, ...userWithoutPassword } = user;
 
-        const startDate = new Date(
-          moment().startOf("month").format("YYYY-MM-DD")
-        );
-        const endDate = new Date(moment().endOf("month").format("YYYY-MM-DD"));
+        const rs = await TransactionController.getStats();
 
-        const transactions = await prisma.transaction.aggregate({
-          _sum: {
-            amount: true,
-          },
-          _count: {
-            id: true,
-          },
-          where: {
-            date: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-        });
-
-        const previousTransaction = await prisma.transaction.aggregate({
-          _sum: {
-            amount: true,
-          },
-          _count: {
-            id: true,
-          },
-          where: {
-            date: {
-              gte: new Date(startDate.setMonth(startDate.getMonth() - 1)),
-              lte: new Date(endDate.setMonth(endDate.getMonth() - 1)),
-            },
-          },
-        });
+        const {
+          totalSpent,
+          totalSpentPrevious,
+          transactionCount,
+          transactionCountPrevious,
+          percentageDifference,
+          difference,
+        } = rs
+          ? rs
+          : {
+              totalSpent: null,
+              totalSpentPrevious: null,
+              transactionCount: null,
+              transactionCountPrevious: null,
+              percentageDifference: null,
+              difference: null,
+            };
 
         return handleSuccess({
           res,
           data: {
             ...userWithoutPassword,
-            totalSpent: transactions._sum.amount,
-            totalSpentPrevious: previousTransaction._sum.amount,
-            transactionCount: transactions._count.id,
-            transactionCountPrevious: previousTransaction._count.id,
-            percentageDifference:
-              ((transactions._sum.amount + previousTransaction._sum.amount) /
-                100) *
-              transactions._sum.amount,
+            totalSpent,
+            totalSpentPrevious,
+            transactionCount,
+            transactionCountPrevious,
+            percentageDifference,
+            difference,
             token,
           },
         });
@@ -96,12 +80,15 @@ export const UserController = {
   register: async (req: Request, res: Response) => {
     try {
       const body: IUser = req.body;
-      const { name, email, idNo, phone, address, image, status } = body;
+      const { firstName, lastName, email, passwordConfirmation } = body;
 
       const existingEmail = await prisma.user.findFirst({
         where: { email: email.trim().toLowerCase() },
       });
 
+      if (body.password !== passwordConfirmation) {
+        return handleBadRequest({ res, message: "Password mismatch!" });
+      }
       if (existingEmail) {
         return handleBadRequest({ res, message: "Email. exists!" });
       }
@@ -109,14 +96,10 @@ export const UserController = {
       const hash = await bcrypt.hash(req.body.password, saltRounds);
       const createUser = await prisma.user.create({
         data: {
-          name,
+          firstName,
+          lastName,
           password: hash,
           email: email.trim().toLowerCase(),
-          idNo,
-          phone,
-          address,
-          image,
-          status,
         },
       });
       const { password, ...userWithoutPassword } = createUser;
@@ -126,12 +109,12 @@ export const UserController = {
     }
   },
   getAllUser: async (req: Request, res: Response) => {
-    const { skip, limit } = getPagination(req.query);
+    const { skip, take } = getPagination(req.query);
 
     try {
       const allUser = await prisma.user.findMany({
         skip,
-        take: limit,
+        take,
       });
 
       const aggregations = await prisma.user.aggregate({
@@ -233,8 +216,9 @@ export const UserController = {
         data.idNo = String(idNo);
       }
 
-      if (restBody.name || restBody.fullname) {
-        data.name = restBody.fullname || restBody.name;
+      if (restBody.firstName || restBody.lastName) {
+        data.firstName = restBody.firstName || undefined;
+        data.lastName = restBody.lastName || undefined;
       }
 
       //update user for password

@@ -9,9 +9,10 @@ export interface IResetPassword {
 }
 
 export interface IUser {
-  name?: string;
-  fullname?: string;
+  firstName: string;
+  lastName: string;
   password?: string;
+  passwordConfirmation?: string;
   roleId?: string;
   email?: string;
   idNo?: string;

@@ -39,18 +39,18 @@ export const getPagination = (query: PaginationQueryType) => {
   const skip = (page - 1) * limit;
   return {
     skip,
-    limit,
+    take: limit,
   };
 };
 
 export const getMeta = (query: PaginationQueryType, total: number) => {
-  const { limit } = getPagination(query);
+  const { take } = getPagination(query);
   const page = query?.page ? Math.abs(Number(query.page)) : DEFAULT_PAGE;
   return {
     currentPage: page,
     totalItems: total,
-    itemsPerPage: limit,
-    totalPages: Math.ceil(total / limit),
+    itemsPerPage: take,
+    totalPages: Math.ceil(total / take),
   };
 };
 

@@ -1,5 +1,7 @@
 import { Router } from "express";
 import User from "./user.routes";
+import Upload from "./upload.route";
+import Transaction from "./transaction.route";
 import { rateLimit } from "express-rate-limit";
 
 const limiter = rateLimit({
@@ -12,5 +14,7 @@ const limiter = rateLimit({
 const router = Router();
 
 router.use("/user", limiter, User);
+router.use("/transaction", Transaction);
+router.use("/upload", Upload);
 
 export default router;

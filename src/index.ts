@@ -57,20 +57,15 @@ app.use(loggerMiddleware);
 
 app.use(cors());
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const requestSizeInBytes = Buffer.from(JSON.stringify(req.body)).length;
-  const requestSizeInMegabytes = (requestSizeInBytes / (1024 * 1024)).toFixed(
-    2
-  );
-  console.log(`Request size: ${requestSizeInMegabytes} MB`);
-  next();
-});
-
 /* Routes */
 app.use(allRoutes);
 
 app.use(function (req, res) {
-  return handleBadRequest({ res, code: 404, message: "Endpoint not found!" });
+  return handleBadRequest({
+    res,
+    code: 404,
+    message: `${req.url} - Endpoint not found!`,
+  });
 });
 
 export const io = new Server(server);

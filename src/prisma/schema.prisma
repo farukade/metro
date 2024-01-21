@@ -10,7 +10,10 @@ datasource db {
 model user {
   id             Int      @id @default(autoincrement())
   password       String
-  name           String   @default("test user")
+  firstName      String
+  lastName       String
+  occupation     String?
+  companyName    String?
   email          String   @unique
   salary         Int?
   unitBalance    Int      @default(0)
@@ -18,7 +21,8 @@ model user {
   idNo           String?
   phone          String?
   address        String?
-  image          String?
+  image          String   @default("placeholder.jpg")
+  type           String   @default("user")
   status         Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -28,8 +32,10 @@ model user {
 
 model transaction {
   id            Int      @id @default(autoincrement())
-  amount        Int
+  amount        Float
   description   String
+  mode          String
+  unitValue     Int
   date          DateTime
   status        Boolean  @default(true)
   createdAt     DateTime @default(now())
