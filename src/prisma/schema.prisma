@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model user {
+model users {
   id             Int      @id @default(autoincrement())
   password       String
   firstName      String
@@ -30,7 +30,7 @@ model user {
   lastChangedBy  String?
 }
 
-model transaction {
+model transactions {
   id            Int      @id @default(autoincrement())
   amount        Float
   description   String

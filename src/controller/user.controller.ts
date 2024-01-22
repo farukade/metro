@@ -23,7 +23,7 @@ export const UserController = {
       const body: ILogin = req.body;
       const { email, password } = body;
 
-      const allUser = await prisma.user.findMany({
+      const allUser = await prisma.users.findMany({
         where: { status: true },
       });
       const user = allUser.find(
@@ -82,7 +82,7 @@ export const UserController = {
       const body: IUser = req.body;
       const { firstName, lastName, email, passwordConfirmation } = body;
 
-      const existingEmail = await prisma.user.findFirst({
+      const existingEmail = await prisma.users.findFirst({
         where: { email: email.trim().toLowerCase() },
       });
 
@@ -94,7 +94,7 @@ export const UserController = {
       }
 
       const hash = await bcrypt.hash(req.body.password, saltRounds);
-      const createUser = await prisma.user.create({
+      const createUser = await prisma.users.create({
         data: {
           firstName,
           lastName,
@@ -112,12 +112,12 @@ export const UserController = {
     const { skip, take } = getPagination(req.query);
 
     try {
-      const allUser = await prisma.user.findMany({
+      const allUser = await prisma.users.findMany({
         skip,
         take,
       });
 
-      const aggregations = await prisma.user.aggregate({
+      const aggregations = await prisma.users.aggregate({
         _count: {
           id: true,
         },
@@ -139,7 +139,7 @@ export const UserController = {
     }
   },
   getSingleUser: async (req: Request, res: Response) => {
-    const singleUser = await prisma.user.findUnique({
+    const singleUser = await prisma.users.findUnique({
       where: {
         id: Number(req.params.id),
       },
@@ -174,7 +174,7 @@ export const UserController = {
         return handleBadRequest({ res, message: "Bad request!" });
       }
 
-      const user = await prisma.user.findFirst({
+      const user = await prisma.users.findFirst({
         where: {
           id: Number(req.params.id),
         },
@@ -185,7 +185,7 @@ export const UserController = {
       }
 
       if (email && email !== "") {
-        const existingUser = await prisma.user.findFirst({
+        const existingUser = await prisma.users.findFirst({
           where: {
             email: email?.trim()?.toLowerCase(),
           },
@@ -201,7 +201,7 @@ export const UserController = {
       }
 
       if (idNo && idNo !== "") {
-        const existingUser = await prisma.user.findFirst({
+        const existingUser = await prisma.users.findFirst({
           where: {
             idNo: String(idNo),
           },
@@ -224,7 +224,7 @@ export const UserController = {
       //update user for password
       if (password) {
         const hash = await bcrypt.hash(req.body.password, saltRounds);
-        await prisma.user.update({
+        await prisma.users.update({
           where: {
             id: Number(req.params.id),
           },
@@ -235,7 +235,7 @@ export const UserController = {
         return handleSuccess({ res, message: "Password updated successfully" });
       } else {
         if (await data) {
-          const updateUser = await prisma.user.update({
+          const updateUser = await prisma.users.update({
             where: {
               id: Number(req.params.id),
             },
@@ -254,7 +254,7 @@ export const UserController = {
   },
   deleteSingleUser: async (req: Request, res: Response) => {
     try {
-      const deleteUser = await prisma.user.update({
+      const deleteUser = await prisma.users.update({
         where: {
           id: Number(req.params.id),
         },

@@ -28,7 +28,7 @@ export const TransactionController = {
         }
       }
 
-      const newTransaction = await prisma.transaction.create({
+      const newTransaction = await prisma.transactions.create({
         data: {
           amount: parseFloat(String(amount)),
           description,
@@ -45,7 +45,7 @@ export const TransactionController = {
   },
   remove: async (req: Request, res: Response) => {
     try {
-      const deleted = await prisma.transaction.update({
+      const deleted = await prisma.transactions.update({
         data: { status: false },
         where: { id: Number(req.query.id) },
       });
@@ -65,11 +65,11 @@ export const TransactionController = {
 
       let result: any;
       if (Number(id)) {
-        result = await prisma.transaction.findFirst({
+        result = await prisma.transactions.findFirst({
           where: { id: Number(id), status: true },
         });
       } else {
-        result = await prisma.transaction.findMany({
+        result = await prisma.transactions.findMany({
           where: { status: true },
           skip,
           take,
@@ -119,7 +119,7 @@ export const TransactionController = {
       );
       const endDate = new Date(moment().endOf("month").format("YYYY-MM-DD"));
 
-      const transactions = await prisma.transaction.aggregate({
+      const transactions = await prisma.transactions.aggregate({
         _sum: {
           amount: true,
         },
@@ -135,7 +135,7 @@ export const TransactionController = {
         },
       });
 
-      const previousTransaction = await prisma.transaction.aggregate({
+      const previousTransaction = await prisma.transactions.aggregate({
         _sum: {
           amount: true,
         },
@@ -151,7 +151,7 @@ export const TransactionController = {
         },
       });
 
-      const allTransactions = await prisma.transaction.aggregate({
+      const allTransactions = await prisma.transactions.aggregate({
         _sum: {
           amount: true,
         },
