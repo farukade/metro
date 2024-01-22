@@ -44,13 +44,22 @@ export const TransactionController = {
       });
 
       if (user) {
-        await prisma.users.update({
+        await prisma.users.updateMany({
           data: { unitBalance: user.unitBalance + unitValue },
-          where: { id: user.id },
+        });
+      } else {
+        await prisma.users.updateMany({
+          data: { unitBalance: unitValue },
         });
       }
 
-      return handleSuccess({ res, data: newTransaction });
+      return handleSuccess({
+        res,
+        data: {
+          ...newTransaction,
+          unitValue: user ? user.unitBalance + unitValue : unitValue,
+        },
+      });
     } catch (error) {
       return handleError(res, error);
     }
