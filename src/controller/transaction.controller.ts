@@ -38,6 +38,18 @@ export const TransactionController = {
         },
       });
 
+      const user = await prisma.users.findFirst({
+        where: { status: true },
+        orderBy: { id: "desc" },
+      });
+
+      if (user) {
+        await prisma.users.update({
+          data: { unitBalance: user.unitBalance + unitValue },
+          where: { id: user.id },
+        });
+      }
+
       return handleSuccess({ res, data: newTransaction });
     } catch (error) {
       return handleError(res, error);
