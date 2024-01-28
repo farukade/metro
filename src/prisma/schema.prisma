@@ -8,26 +8,27 @@ datasource db {
 }
 
 model users {
-  id             Int      @id @default(autoincrement())
-  password       String
-  firstName      String
-  lastName       String
-  occupation     String?
-  companyName    String?
-  email          String   @unique
-  salary         Int?
-  unitBalance    Int      @default(0)
-  openingBalance Int      @default(100)
-  idNo           String?
-  phone          String?
-  address        String?
-  image          String   @default("placeholder.jpg")
-  type           String   @default("user")
-  status         Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  createdBy      String   @default("admin")
-  lastChangedBy  String?
+  id            Int      @id @default(autoincrement())
+  password      String
+  firstName     String
+  lastName      String
+  occupation    String?
+  companyName   String?
+  email         String   @unique
+  salary        Int?
+  unitBalance   Int      @default(0)
+  totalUsed     Int      @default(0)
+  total         Int      @default(0)
+  idNo          String?
+  phone         String?
+  address       String?
+  image         String   @default("placeholder.jpg")
+  type          String   @default("user")
+  status        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String   @default("admin")
+  lastChangedBy String?
 }
 
 model transactions {

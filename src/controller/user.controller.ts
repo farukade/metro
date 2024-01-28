@@ -11,7 +11,6 @@ import { config } from "dotenv";
 import * as bcrypt from "bcrypt";
 import { ILogin, IUser } from "../interfaces/user.interface";
 import { encodeToken } from "../utils/middlewares";
-import moment from "moment";
 import { TransactionController } from "./transaction.controller";
 config();
 
@@ -268,6 +267,35 @@ export const UserController = {
       handleSuccess({ res, message: "User deleted successfully" });
     } catch (error) {
       handleError(res, error);
+    }
+  },
+  updatePassword: async (req: Request, res: Response) => {
+    try {
+      const { password, id } = req.body;
+      if (password && id) {
+        const hash = await bcrypt.hash(password, saltRounds);
+
+        const existing = await prisma.users.findUnique({
+          where: { id },
+        });
+
+        if (!existing) {
+          return handleBadRequest({ res, message: "User not found!" });
+        }
+        const updatedUser = await prisma.users.update({
+          where: { id },
+          data: { password: hash },
+        });
+
+        return handleSuccess({ res, data: updatedUser });
+      } else {
+        return handleBadRequest({
+          res,
+          message: "Password and ID is required!",
+        });
+      }
+    } catch (error) {
+      return handleError(res, error);
     }
   },
 };
