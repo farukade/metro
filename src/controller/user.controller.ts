@@ -159,6 +159,9 @@ export const UserController = {
         phone,
         address,
         image,
+        unitBalance,
+        total,
+        totalUsed,
         ...restBody
       } = body;
 
@@ -167,11 +170,10 @@ export const UserController = {
         phone: phone ? phone : undefined,
         address: address ? address : undefined,
         image: image ? image : undefined,
+        unitBalance: unitBalance ? unitBalance : undefined,
+        total: total ? total : undefined,
+        totalUsed: totalUsed ? totalUsed : undefined,
       };
-
-      if (req.body.clientId) {
-        return handleBadRequest({ res, message: "Bad request!" });
-      }
 
       const user = await prisma.users.findFirst({
         where: {
@@ -179,7 +181,7 @@ export const UserController = {
         },
       });
 
-      if (!user) {
+      if (!user || user.type !== "admin") {
         return handleBadRequest({ res, message: "User not found!" });
       }
 
@@ -234,14 +236,15 @@ export const UserController = {
         return handleSuccess({ res, message: "Password updated successfully" });
       } else {
         if (await data) {
-          const updateUser = await prisma.users.update({
-            where: {
-              id: Number(req.params.id),
-            },
+          const updateUser = await prisma.users.updateMany({
             data,
           });
 
-          const { password, ...userWithoutPassword } = updateUser;
+          const users = await prisma.users.findMany();
+
+          const { password, ...userWithoutPassword } = users?.find(
+            (u) => u.id === Number(req.params.id)
+          );
           return handleSuccess({ res, data: userWithoutPassword });
         } else {
           return handleBadRequest({ res, message: "Unexpected error!" });

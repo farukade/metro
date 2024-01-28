@@ -20,4 +20,7 @@ export interface IUser {
   address?: string;
   image?: string;
   status?: boolean;
+  unitBalance?: number;
+  total?: number;
+  totalUsed?: number;
 }
