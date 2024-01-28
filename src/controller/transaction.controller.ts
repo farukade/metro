@@ -34,31 +34,28 @@ export const TransactionController = {
           description,
           mode,
           unitValue,
-          date: new Date(date).toISOString(),
+          date,
         },
       });
 
-      const user = await prisma.users.findFirst({
-        where: { status: true },
-        orderBy: { id: "desc" },
-      });
+      // const user = await prisma.users.findFirst({
+      //   where: { status: true },
+      //   orderBy: { id: "desc" },
+      // });
 
-      if (user) {
-        await prisma.users.updateMany({
-          data: { unitBalance: user.unitBalance + unitValue },
-        });
-      } else {
-        await prisma.users.updateMany({
-          data: { unitBalance: unitValue },
-        });
-      }
+      // if (user) {
+      //   await prisma.users.updateMany({
+      //     data: { unitBalance: user.unitBalance + unitValue },
+      //   });
+      // } else {
+      //   await prisma.users.updateMany({
+      //     data: { unitBalance: unitValue },
+      //   });
+      // }
 
       return handleSuccess({
         res,
-        data: {
-          ...newTransaction,
-          unitValue: user ? user.unitBalance + unitValue : unitValue,
-        },
+        data: newTransaction,
       });
     } catch (error) {
       return handleError(res, error);
