@@ -10,7 +10,7 @@ import {
 import { config } from "dotenv";
 import * as bcrypt from "bcrypt";
 import { ILogin, IUser } from "../interfaces/user.interface";
-import { encodeToken } from "../utils/middlewares";
+import { decodeToken, encodeToken } from "../utils/middlewares";
 import { TransactionController } from "./transaction.controller";
 config();
 
@@ -291,6 +291,82 @@ export const UserController = {
         });
 
         return handleSuccess({ res, data: updatedUser });
+      } else {
+        return handleBadRequest({
+          res,
+          message: "Password and ID is required!",
+        });
+      }
+    } catch (error) {
+      return handleError(res, error);
+    }
+  },
+  getUserByToken: async (req: Request, res: Response) => {
+    try {
+      const { token } = req.body;
+      if (token) {
+        const data = decodeToken(token);
+
+        if (!data || !data.id || !data.email) {
+          return handleBadRequest({
+            res,
+            code: 403,
+            message: "User not found!",
+          });
+        } else {
+          const user = await prisma.users.findFirst({
+            where: { email: data.email, id: data.id },
+          });
+
+          if (!user) {
+            return handleBadRequest({
+              res,
+              code: 403,
+              message: "User not found!",
+            });
+          } else {
+            const token = encodeToken({
+              id: user.id,
+              email: user.email,
+            });
+
+            const { password, ...userWithoutPassword } = user;
+
+            const rs = await TransactionController.getStats();
+
+            const {
+              totalSpent,
+              totalSpentPrevious,
+              transactionCount,
+              transactionCountPrevious,
+              percentageDifference,
+              difference,
+            } = rs
+              ? rs
+              : {
+                  totalSpent: null,
+                  totalSpentPrevious: null,
+                  transactionCount: null,
+                  transactionCountPrevious: null,
+                  percentageDifference: null,
+                  difference: null,
+                };
+
+            return handleSuccess({
+              res,
+              data: {
+                ...userWithoutPassword,
+                totalSpent,
+                totalSpentPrevious,
+                transactionCount,
+                transactionCountPrevious,
+                percentageDifference,
+                difference,
+                token,
+              },
+            });
+          }
+        }
       } else {
         return handleBadRequest({
           res,

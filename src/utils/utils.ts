@@ -61,7 +61,7 @@ export const handleSuccess = (responseObject: ResponseQueryType) => {
     success: dataFound ? true : false,
     message: dataFound ? message || "Success" : message || "No data",
     paging,
-    data,
+    result: data,
   });
 };
 

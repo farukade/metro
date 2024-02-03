@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === "production") {
 } else {
   server.listen(PORT, () => {
     logger.info(`
-      🚀 Techtink's ERP Server ready at: ${domain} 
+      🚀 WAREEBA Server ready at: ${domain} 
       ⭐️ See API documentations: `);
   });
 }

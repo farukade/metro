@@ -61,6 +61,43 @@ export const TransactionController = {
       return handleError(res, error);
     }
   },
+  update: async (req: Request, res: Response) => {
+    try {
+      const { amount, description, mode, unitValue, date } = req.body;
+      const objProps = Object.keys(req.body);
+
+      if (!objProps?.length) {
+        return handleBadRequest({ res, message: "Nothing to update!" });
+      }
+
+      const existing = await prisma.transactions.findFirst({
+        where: { id: Number(req.query.id) },
+      });
+
+      if (!existing) {
+        return handleBadRequest({ res, message: "Transaction not found!" });
+      }
+
+      const updatedData = await prisma.transactions.update({
+        where: { id: existing.id },
+        data: {
+          amount: amount ? parseFloat(String(amount)) : undefined,
+          description: description ? description : undefined,
+          mode: mode ? mode : undefined,
+          unitValue: unitValue ? unitValue : undefined,
+          date: date ? date : undefined,
+          status: true,
+        },
+      });
+
+      return handleSuccess({
+        res,
+        data: updatedData,
+      });
+    } catch (error) {
+      return handleError(res, error);
+    }
+  },
   remove: async (req: Request, res: Response) => {
     try {
       const deleted = await prisma.transactions.update({
