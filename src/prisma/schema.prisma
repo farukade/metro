@@ -44,3 +44,19 @@ model transactions {
   createdBy     String   @default("admin")
   lastChangedBy String?
 }
+
+model contacts {
+  id            Int      @id @default(autoincrement())
+  name          String
+  description   String
+  phone         String
+  phoneTwo      String
+  email         String
+  emailTwo      String
+  image         String   @default("placeholder.jpg")
+  status        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String   @default("admin")
+  lastChangedBy String?
+}

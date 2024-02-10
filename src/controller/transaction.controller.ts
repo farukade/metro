@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import {
+  getMeta,
   getPagination,
   handleBadRequest,
   handleError,
@@ -119,15 +120,24 @@ export const TransactionController = {
       const { skip, take } = getPagination(req.query);
 
       let result: any;
+      let aggregation: any;
       if (Number(id)) {
         result = await prisma.transactions.findFirst({
           where: { id: Number(id), status: true },
+        });
+        aggregation = await prisma.transactions.aggregate({
+          where: { id: Number(id), status: true },
+          _count: { id: true },
         });
       } else {
         result = await prisma.transactions.findMany({
           where: { status: true },
           skip,
           take,
+        });
+        aggregation = await prisma.transactions.aggregate({
+          where: { status: true },
+          _count: { id: true },
         });
       }
 
@@ -151,8 +161,11 @@ export const TransactionController = {
             difference: null,
           };
 
+      const paging = getMeta(req.query, aggregation?._count?.id);
+
       return handleSuccess({
         res,
+        paging,
         data: {
           result,
           totalSpent,
