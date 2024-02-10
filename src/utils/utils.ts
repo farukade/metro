@@ -76,7 +76,7 @@ export const handleBadRequest = (responseObject: ResponseQueryType) => {
 };
 
 export const handleError = (res: Response, error: any) => {
-  logger.error(error?.message || "Unexpected error");
+  logger.error(error || "Unexpected error");
   return res.status(400).json({
     success: false,
     message: "Unexpected error",

@@ -3,6 +3,7 @@ import User from "./user.routes";
 import Upload from "./upload.route";
 import Transaction from "./transaction.route";
 import Contact from "./contact.route";
+import Group from "./group.route";
 import { rateLimit } from "express-rate-limit";
 
 const limiter = rateLimit({
@@ -17,6 +18,7 @@ const router = Router();
 router.use("/user", limiter, User);
 router.use("/transaction", Transaction);
 router.use("/contact", Contact);
+router.use("/group", Group);
 router.use("/upload", Upload);
 
 export default router;

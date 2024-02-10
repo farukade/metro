@@ -13,12 +13,21 @@ import {
 import { logger } from "../utils/logger";
 import moment from "moment";
 import { join } from "path";
+import { GroupController } from "./contact-group.controller";
 
 export const ContactController = {
   create: async (req: Request, res: Response) => {
     try {
-      const { name, phone, image, description, phoneTwo, email, emailTwo } =
-        req.body;
+      const {
+        name,
+        phone,
+        image,
+        description,
+        phoneTwo,
+        email,
+        emailTwo,
+        groupId,
+      } = req.body;
       const expectedKeys = ["name", "phone", "email"];
       const objProps = Object.keys(req.body);
 
@@ -28,21 +37,40 @@ export const ContactController = {
         }
       }
 
+      let group: any;
+      if (groupId) {
+        group = await prisma.groups.findFirst({
+          where: { id: groupId, status: true },
+        });
+      } else {
+        group = await GroupController.getOrCreateGroup({
+          name: "All Contacts",
+        });
+      }
+
+      if (!(await group)) {
+        return handleBadRequest({ res, message: "Group creation failed!" });
+      }
+
       const newContact = await prisma.contacts.create({
         data: {
           name,
           phone,
-          image,
-          description,
-          phoneTwo,
           email,
-          emailTwo,
+          image: image ? image : undefined,
+          description: description ? description : undefined,
+          phoneTwo: phoneTwo ? phoneTwo : undefined,
+          emailTwo: emailTwo ? emailTwo : undefined,
         },
+      });
+
+      await prisma.contactGroups.create({
+        data: { groupId: group.id, contactId: newContact.id },
       });
 
       return handleSuccess({
         res,
-        data: newContact,
+        data: { ...newContact, groups: [group] },
       });
     } catch (error) {
       return handleError(res, error);
@@ -104,7 +132,7 @@ export const ContactController = {
   },
   get: async (req: Request, res: Response) => {
     try {
-      const { id } = req.query;
+      const { id, key } = req.query;
       const { skip, take } = getPagination(req.query);
 
       let result: any;
@@ -117,9 +145,30 @@ export const ContactController = {
           where: { id: Number(id), status: true },
           _count: { id: true },
         });
+        const foundgroups = await prisma.contactGroups.findMany({
+          where: { contactId: Number(id) },
+        });
+        result = { ...result, groups: foundgroups };
       } else {
-        result = await prisma.contacts.findMany({
-          where: { status: true },
+        const res = await prisma.contacts.findMany({
+          where: {
+            status: true,
+            name:
+              key && key !== ""
+                ? {
+                    contains: String(key),
+                    mode: "insensitive",
+                  }
+                : undefined,
+          },
+          include: {
+            contactGroups: {
+              include: {
+                group: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
           skip,
           take,
         });
@@ -127,6 +176,24 @@ export const ContactController = {
           where: { status: true },
           _count: { id: true },
         });
+
+        let newResult: any = [];
+
+        for (const item of res) {
+          let newGroups: any = [];
+          const { contactGroups, ...restItem } = item;
+          if (contactGroups && contactGroups.length) {
+            for (const cg of contactGroups) {
+              const { group } = cg;
+              if (group) {
+                newGroups = [...newGroups, group];
+              }
+            }
+          }
+          newResult = [...newResult, { ...item, groups: newGroups }];
+        }
+
+        result = newResult;
       }
 
       const paging = getMeta(req.query, aggregation?._count?.id);
