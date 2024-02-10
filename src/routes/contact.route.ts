@@ -16,13 +16,13 @@ contactRoutes.put("/", authorize(["update-contact"]), update);
 contactRoutes.delete("/", authorize(["delete-contact"]), remove);
 contactRoutes.post(
   "/upload",
-  authorize(["create-product"]),
+  authorize(["create-contact"]),
   asyncMulterMiddleware(uploadFile.any()),
   upload
 );
 contactRoutes.get(
   "/download/template",
-  authorize(["create-product"]),
+  authorize(["create-contact"]),
   uploadTemplate
 );
 
