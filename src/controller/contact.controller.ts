@@ -36,7 +36,7 @@ export const ContactController = {
           return handleBadRequest({ res, message: `${key} is required!` });
         }
       }
-      console.log("DATA => ", req.body);
+
       let newGroups: any = [];
       if (groups && groups.length) {
         const foundGroups = await prisma.groups.findMany({
@@ -181,7 +181,7 @@ export const ContactController = {
   },
   get: async (req: Request, res: Response) => {
     try {
-      const { id, key } = req.query;
+      const { id, key, groupId } = req.query;
       const { skip, take } = getPagination(req.query);
 
       let result: any;
@@ -199,8 +199,18 @@ export const ContactController = {
         });
         result = { ...result, groups: foundgroups };
       } else {
+        const contactGroups = groupId
+          ? await prisma.contactGroups.findMany({
+              where: {
+                groupId: groupId ? Number(groupId) : undefined,
+              },
+            })
+          : [];
         const res = await prisma.contacts.findMany({
           where: {
+            id: groupId
+              ? { in: contactGroups.map((cg: any) => cg.contactId) }
+              : undefined,
             status: true,
             name:
               key && key !== ""
