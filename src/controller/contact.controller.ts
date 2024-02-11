@@ -26,7 +26,7 @@ export const ContactController = {
         phoneTwo,
         email,
         emailTwo,
-        groupId,
+        groups,
       } = req.body;
       const expectedKeys = ["name", "phone", "email"];
       const objProps = Object.keys(req.body);
@@ -36,19 +36,21 @@ export const ContactController = {
           return handleBadRequest({ res, message: `${key} is required!` });
         }
       }
-
-      let group: any;
-      if (groupId) {
-        group = await prisma.groups.findFirst({
-          where: { id: groupId, status: true },
+      console.log("DATA => ", req.body);
+      let newGroups: any = [];
+      if (groups && groups.length) {
+        const foundGroups = await prisma.groups.findMany({
+          where: { id: { in: groups }, status: true },
         });
+        newGroups = [...newGroups, ...foundGroups];
       } else {
-        group = await GroupController.getOrCreateGroup({
+        const newGroup = await GroupController.getOrCreateGroup({
           name: "All Contacts",
         });
+        newGroups.push(newGroup);
       }
 
-      if (!(await group)) {
+      if (!(await newGroups?.length)) {
         return handleBadRequest({ res, message: "Group creation failed!" });
       }
 
@@ -64,13 +66,15 @@ export const ContactController = {
         },
       });
 
-      await prisma.contactGroups.create({
-        data: { groupId: group.id, contactId: newContact.id },
+      await prisma.contactGroups.createMany({
+        data: newGroups.map((g: any) => {
+          return { groupId: g.id, contactId: newContact.id };
+        }),
       });
 
       return handleSuccess({
         res,
-        data: { ...newContact, groups: [group] },
+        data: { ...newContact, groups: [...newGroups] },
       });
     } catch (error) {
       return handleError(res, error);
@@ -78,8 +82,16 @@ export const ContactController = {
   },
   update: async (req: Request, res: Response) => {
     try {
-      const { name, phone, image, description, phoneTwo, email, emailTwo } =
-        req.body;
+      const {
+        name,
+        phone,
+        image,
+        description,
+        phoneTwo,
+        email,
+        emailTwo,
+        groups,
+      } = req.body;
       const objProps = Object.keys(req.body);
 
       if (!objProps?.length) {
@@ -106,6 +118,43 @@ export const ContactController = {
           emailTwo: emailTwo ? emailTwo : undefined,
         },
       });
+
+      if (groups && groups.length) {
+        const existingGroups = await prisma.contactGroups.findMany({
+          where: { contactId: updatedData.id },
+        });
+
+        const existingGroupIds = existingGroups?.map((g: any) => g.id);
+
+        let notChanged: number[] = [];
+        let newGroups: number[] = [];
+        let deletedGroups: number[] = [];
+        for (const item of [...groups, ...existingGroupIds]) {
+          if (groups.includes(item) && existingGroupIds.includes(item)) {
+            notChanged.push(item);
+            continue;
+          } else if (groups.includes(item)) {
+            newGroups.push(item);
+            continue;
+          } else if (existingGroupIds.includes(item)) {
+            deletedGroups.push(item);
+            continue;
+          }
+        }
+
+        if (deletedGroups.length) {
+          await prisma.contactGroups.deleteMany({
+            where: { id: { in: deletedGroups } },
+          });
+        }
+        if (newGroups.length) {
+          await prisma.contactGroups.createMany({
+            data: newGroups.map((g: number) => {
+              return { contactId: updatedData.id, groupId: g };
+            }),
+          });
+        }
+      }
 
       return handleSuccess({
         res,

@@ -48,11 +48,11 @@ model transactions {
 model contacts {
   id            Int             @id @default(autoincrement())
   name          String
-  description   String
+  description   String?
   phone         String
-  phoneTwo      String
+  phoneTwo      String?
   email         String
-  emailTwo      String
+  emailTwo      String?
   image         String          @default("placeholder.jpg")
   status        Boolean         @default(true)
   createdAt     DateTime        @default(now())

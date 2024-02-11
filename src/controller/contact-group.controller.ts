@@ -120,7 +120,11 @@ export const GroupController = {
         const rs = await prisma.groups.findMany({
           where: { status: true },
           include: {
-            contactGroups: true,
+            contactGroups: {
+              include: {
+                contact: true,
+              },
+            },
           },
           skip,
           take,
@@ -130,7 +134,12 @@ export const GroupController = {
           const { contactGroups, ...restItem } = item;
           result = [
             ...result,
-            { ...restItem, count: contactGroups?.length || 0 },
+            {
+              ...restItem,
+              count:
+                contactGroups?.filter((cg: any) => cg.contact?.status)
+                  ?.length || 0,
+            },
           ];
         }
         aggregation = await prisma.groups.aggregate({
