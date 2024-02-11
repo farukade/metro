@@ -2,7 +2,7 @@ import { Response } from "express";
 
 export interface PaginationQueryType {
   page?: string | undefined;
-  count?: string | undefined;
+  limit?: string | undefined;
 }
 
 export interface ResponseQueryType {

@@ -33,8 +33,8 @@ export const generateClientId = () => randomBytes(32).toString("hex");
 
 export const getPagination = (query: PaginationQueryType) => {
   const page = query?.page ? Math.abs(Number(query.page)) : DEFAULT_PAGE;
-  const limit = query?.count
-    ? Math.abs(Number(query.count))
+  const limit = query?.limit
+    ? Math.abs(Number(query.limit))
     : DEFAULT_PAGE_LIMIT;
   const skip = (page - 1) * limit;
   return {
