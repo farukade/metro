@@ -1,6 +1,6 @@
 module.exports = [
   {
-    name: "erp",
+    name: "metro",
     script: "dist/server.js",
     args: "",
     exec_mode: "",
