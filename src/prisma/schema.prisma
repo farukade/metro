@@ -49,10 +49,11 @@ model contacts {
   id            Int             @id @default(autoincrement())
   name          String
   description   String?
-  phone         String
+  phone         String?
   phoneTwo      String?
-  email         String
+  email         String?
   emailTwo      String?
+  address       String?
   image         String          @default("placeholder.jpg")
   status        Boolean         @default(true)
   createdAt     DateTime        @default(now())
