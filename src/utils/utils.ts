@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { config } from "dotenv";
-import { PrismaClient } from "../generated/prisma";
+import { PrismaClient } from "../../generated/prisma";
 import { ToWords } from "to-words";
 import {
   PaginationQueryType,
